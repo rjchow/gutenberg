@@ -35,7 +35,7 @@ export { combineReducers };
  * @typedef {import('../types').ReduxStoreConfig<State,Actions,Selectors>} ReduxStoreConfig
  * @template State
  * @template {Record<string,import('../types').ActionCreator>} Actions
- * @template Selectors
+ * @template {import('../types').MapOf<import('../types').Selector>} Selectors
  */
 
 const trimUndefinedValues = ( array ) => {
@@ -141,7 +141,7 @@ function createBindingCache( bind ) {
  *
  * @template State
  * @template {Record<string,import('../types').ActionCreator>} Actions
- * @template Selectors
+ * @template {import('../types').MapOf<import('../types').Selector>} Selectors
  * @param {string}                                    key     Unique namespace identifier.
  * @param {ReduxStoreConfig<State,Actions,Selectors>} options Registered store options, with properties
  *                                                            describing reducer, actions, selectors,

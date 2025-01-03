@@ -46,7 +46,7 @@ function warnOnUnstableReference( a, b ) {
  * @typedef {import('../../types').ReduxStoreConfig<State,Actions,Selectors>} ReduxStoreConfig
  * @template State
  * @template {Record<string,import('../../types').ActionCreator>} Actions
- * @template Selectors
+ * @template {import('../../types').MapOf<import('../../types').Selector>} Selectors
  */
 /** @typedef {import('../../types').MapSelect} MapSelect */
 /**

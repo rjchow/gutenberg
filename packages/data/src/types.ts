@@ -4,7 +4,32 @@
 // eslint-disable-next-line no-restricted-imports
 import type { combineReducers as reduxCombineReducers } from 'redux';
 
-type MapOf< T > = { [ name: string ]: T };
+/**
+ * Internal dependencies
+ */
+import type * as MetadataActions from './redux-store/metadata/actions';
+import type {
+	getResolutionState,
+	getIsResolving,
+	hasStartedResolution,
+	hasFinishedResolution,
+	hasResolutionFailed,
+	getResolutionError,
+	isResolving,
+	getCachedResolvers,
+	hasResolvingSelectors,
+	countSelectorsByStatus,
+} from './redux-store/metadata/selectors';
+
+// Helper type to get parameter types of a selector function (excluding the state parameter)
+export type SelectorParameters< Selector > = Selector extends (
+	state: any,
+	...args: infer Parameters
+) => any
+	? Parameters
+	: never;
+
+export type MapOf< T > = { [ name: string ]: T };
 
 export type ActionCreator = ( ...args: any[] ) => any | Generator;
 export type Resolver = Function | Generator;
@@ -33,7 +58,7 @@ export interface StoreDescriptor< Config extends AnyConfig > {
 export interface ReduxStoreConfig<
 	State,
 	ActionCreators extends MapOf< ActionCreator >,
-	Selectors,
+	Selectors extends MapOf< Selector >,
 > {
 	initialState?: State;
 	reducer: ( state: any, action: any ) => any;
@@ -84,7 +109,12 @@ export type ListenerFunction = () => void;
 export type CurriedSelectorsOf< S > = S extends StoreDescriptor<
 	ReduxStoreConfig< any, any, infer Selectors >
 >
-	? { [ key in keyof Selectors ]: CurriedState< Selectors[ key ] > }
+	? {
+			[ key in keyof ( Selectors &
+				TypedMetadataSelectors< ConfigOf< S > > ) ]: CurriedState<
+				( Selectors & TypedMetadataSelectors< ConfigOf< S > > )[ key ]
+			>;
+	  }
 	: never;
 
 /**
@@ -167,7 +197,9 @@ export type ConfigOf< S > = S extends StoreDescriptor< infer C > ? C : never;
 
 export type ActionCreatorsOf< Config extends AnyConfig > =
 	Config extends ReduxStoreConfig< any, infer ActionCreators, any >
-		? PromisifiedActionCreators< ActionCreators >
+		? PromisifiedActionCreators<
+				ActionCreators & TypedMetadataActions< Config >
+		  >
 		: never;
 
 // Takes an object containing all action creators for a store and updates the
@@ -207,3 +239,46 @@ type SelectorsOf< Config extends AnyConfig > = Config extends ReduxStoreConfig<
 	: never;
 
 export type combineReducers = typeof reduxCombineReducers;
+
+export type TypedMetadataActions< Config extends AnyConfig > = {
+	startResolution: typeof MetadataActions.startResolution<
+		SelectorsOf< Config >
+	>;
+	finishResolution: typeof MetadataActions.finishResolution<
+		SelectorsOf< Config >
+	>;
+	failResolution: typeof MetadataActions.failResolution<
+		SelectorsOf< Config >
+	>;
+	startResolutions: typeof MetadataActions.startResolutions<
+		SelectorsOf< Config >
+	>;
+	finishResolutions: typeof MetadataActions.finishResolutions<
+		SelectorsOf< Config >
+	>;
+	failResolutions: typeof MetadataActions.failResolutions<
+		SelectorsOf< Config >
+	>;
+	invalidateResolution: typeof MetadataActions.invalidateResolution<
+		SelectorsOf< Config >
+	>;
+	invalidateResolutionForStore: typeof MetadataActions.invalidateResolutionForStore;
+	invalidateResolutionForStoreSelector: typeof MetadataActions.invalidateResolutionForStoreSelector<
+		SelectorsOf< Config >
+	>;
+};
+
+export type TypedMetadataSelectors< Config extends AnyConfig > = {
+	getResolutionState: typeof getResolutionState< SelectorsOf< Config > >;
+	getIsResolving: typeof getIsResolving< SelectorsOf< Config > >;
+	hasStartedResolution: typeof hasStartedResolution< SelectorsOf< Config > >;
+	hasFinishedResolution: typeof hasFinishedResolution<
+		SelectorsOf< Config >
+	>;
+	hasResolutionFailed: typeof hasResolutionFailed< SelectorsOf< Config > >;
+	getResolutionError: typeof getResolutionError< SelectorsOf< Config > >;
+	isResolving: typeof isResolving< SelectorsOf< Config > >;
+	getCachedResolvers: typeof getCachedResolvers;
+	hasResolvingSelectors: typeof hasResolvingSelectors;
+	countSelectorsByStatus: typeof countSelectorsByStatus;
+};

@@ -8,19 +8,13 @@ import type { Reducer } from 'redux';
  * Internal dependencies
  */
 import { selectorArgsToStateKey, onSubKey } from './utils';
+import type * as MetadataActions from './actions';
 
-type Action =
-	| ReturnType< typeof import('./actions').startResolution >
-	| ReturnType< typeof import('./actions').finishResolution >
-	| ReturnType< typeof import('./actions').failResolution >
-	| ReturnType< typeof import('./actions').startResolutions >
-	| ReturnType< typeof import('./actions').finishResolutions >
-	| ReturnType< typeof import('./actions').failResolutions >
-	| ReturnType< typeof import('./actions').invalidateResolution >
-	| ReturnType< typeof import('./actions').invalidateResolutionForStore >
-	| ReturnType<
-			typeof import('./actions').invalidateResolutionForStoreSelector
-	  >;
+type Action = {
+	[ K in keyof typeof MetadataActions ]: ReturnType<
+		( typeof MetadataActions )[ K ]
+	>;
+}[ keyof typeof MetadataActions ];
 
 type StateKey = unknown[] | unknown;
 export type StateValue =
@@ -83,7 +77,7 @@ const subKeysIsResolved: Reducer< Record< string, State >, Action > = onSubKey<
 		}
 		case 'FAIL_RESOLUTIONS': {
 			const nextState = new EquivalentKeyMap( state );
-			action.args.forEach( ( resolutionArgs, idx ) => {
+			action.args.forEach( ( resolutionArgs: unknown[], idx: number ) => {
 				const resolutionState: StateValue = {
 					status: 'error',
 					error: undefined,

@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { useSelect } from '@wordpress/data';
+import { SelectFunction, Selector, SelectorParameters } from "@wordpress/data/build-types/types"
 
 /**
  * Internal dependencies
